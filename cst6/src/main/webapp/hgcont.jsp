@@ -16,5 +16,23 @@
     <p>Submit button.
     <input type="submit" name="submit" value="submit" /></p>
 </form>
+<div id="timer">
+	You have been playing this game for 0 seconds...
+</div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+	var time = 0;
+	$(document).ready(function() {
+		initializeTimer();
+	})
+	
+	function initializeTimer() {
+    	setInterval(function(){
+    		time++;
+    		$("#timer").text("You have been playing this game for " + time + " seconds...");
+    	}, 1000);
+	}
+
+</script>
 </html>
