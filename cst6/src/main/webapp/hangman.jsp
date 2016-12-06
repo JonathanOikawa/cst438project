@@ -7,6 +7,15 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<div>Welcome to hangman game. Reload the page to start.</div>
+	<div>Welcome to hangman game. Press a button to start a game.</div>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="easy">Easy</button>
+	</form>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="normal">Normal</button>
+	</form>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="hard">Hard</button>
+	</form>
 </body>
 </html>

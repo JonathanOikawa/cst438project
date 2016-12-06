@@ -13,16 +13,23 @@ public class Hangman {
 	private ArrayList<Character> guesses;
 	private int wrongGuesses;
 	private boolean newGuess;
+	private int currentSessionTime;
+	private String difficulty;
 	
 	public Hangman() {
-		word = randomWord();
 		guesses = new ArrayList<Character>();
 		wrongGuesses = 0;
 		newGuess = false;
+		currentSessionTime = 0;
 	}
 	
 	public String getWord() {
 		return word;
+	}
+	
+	public void setWord(String difficulty) {
+		this.difficulty = difficulty;
+		word = randomWord(difficulty);
 	}
 	
 	public void addGuess(String guess) {
@@ -94,13 +101,30 @@ public class Hangman {
 		return guesses.get(guesses.size() - 1);
 	}
 	
-	public static String randomWord() {
+	public int getCurrentTimePlaying() {
+		return currentSessionTime;
+	}
+	
+	public void setCurrentTimePlaying(int time) {
+		currentSessionTime = time;
+	}
+	
+	public static String randomWord(String difficulty) {
 		try {
 			if (wordlist == null) {
 				wordlist = new ArrayList<String>();
 				// read in word list
 				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-				InputStream is = classloader.getResourceAsStream("wordlist.txt");
+				InputStream is = null;
+				if (difficulty.equals("easy")) {
+					is = classloader.getResourceAsStream("wordlistEasy.txt");
+				} else if (difficulty.equals("normal")) {
+					is = classloader.getResourceAsStream("wordlistNormal.txt");
+				} else if (difficulty.equals("hard")) {
+					is = classloader.getResourceAsStream("wordlistHard.txt");
+				} else {
+					return null;
+				}
 				Scanner infile = new Scanner(is);
 				while (infile.hasNextLine()) {
 					wordlist.add(infile.nextLine());

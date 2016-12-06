@@ -10,11 +10,45 @@
 	<image src="MyServlet?image=h<%out.print(request.getAttribute("image"));%>.gif">
 	<h2 style=\"font-family:'Lucida Console', monospace\"> <% out.println(request.getAttribute("guess")); %></h2>
 	<form action="MyServlet" method="post">
-    <p>There are no <% out.println(request.getAttribute("lastGuess")); %>'s.
-    <input type="text" name="guess" /></p>
-
-    <p>Submit button.
-    <input type="submit" name="submit" value="submit" /></p>
-</form>
+	    <p>There are no <% out.println(request.getAttribute("lastGuess")); %>'s.
+	    <input onkeypress="return onlyAlphabets(event,this);" type="text" name="guess" /></p>
+	    <input style="display: none" type="text" name="time" value="0" />
+	
+	    <p>Submit button.
+	    <input type="submit" name="submit" value="submit" /></p>
+	</form>
+	<div id="timer">You have been playing this game for <% out.println(request.getAttribute("time")); %> seconds...</div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+	var time = <% out.println(request.getAttribute("time")); %> != null ? <% out.println(request.getAttribute("time")); %> : 0;
+	$("#submit-button").prop("disabled", true);
+	$("input[name=guess]").change(function() {
+		if ($("input[name=guess]").val().length > 0) {
+			$("#submit-button").prop("disabled", false);
+		} else {
+			$("#submit-button").prop("disabled", true);
+		}
+	});
+	
+	function onlyAlphabets(e, t) {
+        try {
+            if (window.event) {
+                var charCode = window.event.keyCode;
+            }
+            else if (e) {
+                var charCode = e.which;
+            }
+            else { return true; }
+            if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123))
+                return true;
+            else
+                return false;
+        }
+        catch (err) {
+            alert(err.Description);
+        }
+    }
+</script>
+<script src="MyServlet?js=timer.js"></script>
 </html>

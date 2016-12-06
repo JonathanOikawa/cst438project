@@ -9,5 +9,6 @@
 <body>
 	<image src="MyServlet?image=h<%out.print(request.getAttribute("image"));%>.gif">
 	<h2>You lost!  The word is <% out.println(request.getAttribute("word")); %></h2>
+	<div>This session took you <% out.println(request.getAttribute("time")); %> seconds </div>
 </body>
 </html>
