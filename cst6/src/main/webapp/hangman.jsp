@@ -5,6 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Insert title here</title>
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 	<div>Welcome to hangman game. Reload the page to start.</div>

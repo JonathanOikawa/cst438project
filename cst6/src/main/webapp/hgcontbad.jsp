@@ -5,6 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HG ContBad</title>
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 	<image src="MyServlet?image=h<%out.print(request.getAttribute("image"));%>.gif">
