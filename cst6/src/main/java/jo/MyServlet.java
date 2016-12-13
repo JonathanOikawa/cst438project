@@ -69,6 +69,9 @@ public class MyServlet extends HttpServlet  {
 					request.setAttribute("guess", hangmanGame.generateGuessString());
 					if (!hangmanGame.isNewGuess() || hangmanGame.isCorrectNewLetter()) {
 						request.getRequestDispatcher("hgcont.jsp").forward(request, response);
+						request.setAttribute("correctguess", hangmanGame.generateWordString());
+						if (!hangmanGame.isNewGuess() || hangmanGame.isCorrectNewLetter()) {
+							request.getRequestDispatcher("hgcont.jsp").forward(request, response);
 					} else {
 						request.setAttribute("lastGuess", hangmanGame.getLastGuess());
 						request.getRequestDispatcher("hgcontbad.jsp").forward(request, response);
