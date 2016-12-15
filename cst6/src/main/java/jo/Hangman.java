@@ -80,6 +80,27 @@ public class Hangman {
 		return outputString;
 	}
 	
+	//Chris L Method to Generate The Letter of the word until it is complete
+		public String generateWordString()
+		{
+			String outputString = "";
+			for (int i = 0; i < word.length(); i++) {
+				boolean correctLetter = false;
+				for (Character c : guesses) {
+					if (word.charAt(i) == c.charValue()) {
+						outputString += word.charAt(i) + " ";
+						correctLetter = true;
+					}
+				}
+				
+				if (correctLetter == false) {
+					outputString += " ";
+				}			
+			}
+			return outputString;
+		}
+		
+	
 	// Method for checking if the user has lost and also to get the correct image
 	public int getWrongGuesses() {
 		return wrongGuesses;

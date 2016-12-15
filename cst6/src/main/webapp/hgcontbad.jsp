@@ -9,6 +9,7 @@
 <body>
 	<image src="MyServlet?image=h<%out.print(request.getAttribute("image"));%>.gif">
 	<h2 style=\"font-family:'Lucida Console', monospace\"> <% out.println(request.getAttribute("guess")); %></h2>
+	<h2 style=\"font-family:'Lucida Console', monospace\"> <% out.println(request.getAttribute("correctguess")); %></h2>
 	<form action="MyServlet" method="post">
     <p>There are no <% out.println(request.getAttribute("lastGuess")); %>'s.
     <input type="text" name="guess" /></p>
