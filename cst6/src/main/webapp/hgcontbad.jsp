@@ -18,6 +18,9 @@
 	    <input type="submit" name="submit" value="submit" /></p>
 	</form>
 	<div id="timer">You have been playing this game for <% out.println(request.getAttribute("time")); %> seconds...</div>
+	<form action="MyServlet" method="post">  
+		<button name="logout" value="true">Logout</button>
+	</form>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>

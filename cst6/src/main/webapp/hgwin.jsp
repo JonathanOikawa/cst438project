@@ -10,5 +10,21 @@
 	<image src="MyServlet?image=h<%out.print(request.getAttribute("image"));%>.gif">
 	<h2>Congratulations you win!</h2>
 	<div>This session took you <% out.println(request.getAttribute("time")); %> seconds </div>
+	<div>Start a new game.</div>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="easy">Easy</button>
+	</form>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="normal">Normal</button>
+	</form>
+	<form action="MyServlet" method="post">  
+		<button name="difficulty" value="hard">Hard</button>
+	</form>
+	<form action="MyServlet" method="post">  
+		<button name="logout" value="true">Logout</button>
+	</form>
+	<form action="MyServlet" method="get">  
+		<button name="stats" value="true">STATS</button>
+	</form>
 </body>
 </html>

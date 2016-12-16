@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
-public class Hangman {
+public class H1 {
 	static ArrayList<String> wordlist = null;
 	
 	private String word;
@@ -16,19 +16,20 @@ public class Hangman {
 	private int currentSessionTime;
 	private String difficulty;
 	
-	public Hangman(String word, String guesses, int wrongGuesses, boolean newGuess, int currentSessionTime, String difficulty) {
-		this.word = word;
-		for (int i = 0; i < guesses.length(); i++) {
-			this.guesses.add(guesses.charAt(i));
-		}
-		this.wrongGuesses = wrongGuesses;
-		this.newGuess = newGuess;
-		this.currentSessionTime = currentSessionTime;
-		this.difficulty = difficulty;
+	public H1() {
+		guesses = new ArrayList<Character>();
+		wrongGuesses = 0;
+		newGuess = false;
+		currentSessionTime = 0;
 	}
-		
+	
 	public String getWord() {
 		return word;
+	}
+	
+	public void setWord(String difficulty) {
+		this.difficulty = difficulty;
+		word = randomWord(difficulty);
 	}
 	
 	public void addGuess(String guess) {
@@ -68,16 +69,14 @@ public class Hangman {
 	}
 	
 	// Method to generate the "_ _ a _" string for the .jsp
-	public static String generateGuessString(String word, String guesses) {
+	public String generateGuessString() {
 		String outputString = "";
 		for (int i = 0; i < word.length(); i++) {
 			boolean correctLetter = false;
-			if (guesses != null) {
-				for (int j = 0; j < guesses.length(); j++) {
-					if (word.charAt(i) == guesses.charAt(j)) {
-						outputString += word.charAt(i) + " ";
-						correctLetter = true;
-					}
+			for (Character c : guesses) {
+				if (word.charAt(i) == c.charValue()) {
+					outputString += word.charAt(i) + " ";
+					correctLetter = true;
 				}
 			}
 			
@@ -93,8 +92,8 @@ public class Hangman {
 		return wrongGuesses;
 	}
 	
-	public static boolean isGameWon(String word, String guesses) {
-		return !generateGuessString(word, guesses).contains("_");
+	public boolean isGameWon() {
+		return !this.generateGuessString().contains("_");
 	}
 	
 	// For displaying "There are no _'s"
@@ -112,27 +111,26 @@ public class Hangman {
 	
 	public static String randomWord(String difficulty) {
 		try {
-			wordlist = new ArrayList<String>();
-			// read in word list
-			ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-			InputStream is = null;
-			if (difficulty.equals("easy")) {
-				System.out.println("New easy word");
-				is = classloader.getResourceAsStream("wordlistEasy.txt");
-			} else if (difficulty.equals("normal")) {
-				System.out.println("New easy woraasd");
-				is = classloader.getResourceAsStream("wordlistNormal.txt");
-			} else if (difficulty.equals("hard")) {
-				System.out.println("New eashardy word");
-				is = classloader.getResourceAsStream("wordlistHard.txt");
-			} else {
-				return null;
+			if (wordlist == null) {
+				wordlist = new ArrayList<String>();
+				// read in word list
+				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+				InputStream is = null;
+				if (difficulty.equals("easy")) {
+					is = classloader.getResourceAsStream("wordlistEasy.txt");
+				} else if (difficulty.equals("normal")) {
+					is = classloader.getResourceAsStream("wordlistNormal.txt");
+				} else if (difficulty.equals("hard")) {
+					is = classloader.getResourceAsStream("wordlistHard.txt");
+				} else {
+					return null;
+				}
+				Scanner infile = new Scanner(is);
+				while (infile.hasNextLine()) {
+					wordlist.add(infile.nextLine());
+				}
+				infile.close();
 			}
-			Scanner infile = new Scanner(is);
-			while (infile.hasNextLine()) {
-				wordlist.add(infile.nextLine());
-			}
-			infile.close();
 			int t = generator.nextInt(wordlist.size());
 			return wordlist.get(t);
 

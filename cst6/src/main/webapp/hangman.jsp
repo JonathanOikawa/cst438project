@@ -17,5 +17,11 @@
 	<form action="MyServlet" method="post">  
 		<button name="difficulty" value="hard">Hard</button>
 	</form>
+	<form action="MyServlet" method="post">  
+		<button name="logout" value="true">Logout</button>
+	</form>
+	<form action="MyServlet" method="get">  
+		<button name="stats" value="true">STATS</button>
+	</form>
 </body>
 </html>
