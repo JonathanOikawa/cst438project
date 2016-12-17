@@ -1,9 +1,10 @@
 /**
- *  System test of MyHttpServer
+ *  System test of MongoLab
  */
 
 import static org.junit.Assert.*;
 
+import org.bson.BasicBSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,20 +71,7 @@ public class MyDBTests {
 		
 		
 		// Create new user
-		URL url = new URL(PREFIX);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestProperty("Cookie", "MongoUsername=" + TEST_USERNAME);
-        conn.setDoOutput(true);
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-        String charset = "UTF-8";
-        String s = "username=" + URLEncoder.encode(TEST_USERNAME, charset);
-
-        conn.setFixedLengthStreamingMode(s.getBytes().length);
-        PrintWriter out = new PrintWriter(conn.getOutputStream());
-        out.print(s);
-        out.close();
+		post("username", TEST_USERNAME);
         
         Thread.sleep(5000);
 		assertEquals("New player not added correctly", 1, stats.getStats().get("count"));
@@ -102,18 +90,7 @@ public class MyDBTests {
 		assertFalse("Account wasn't initialized properly", (Boolean) user.get("isGameInProgress"));
 		
 		// User creates new game
-		conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestProperty("Cookie", "MongoUsername=" + TEST_USERNAME);
-        conn.setDoOutput(true);
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-        s = "difficulty=" + URLEncoder.encode("normal", charset);
-
-        conn.setFixedLengthStreamingMode(s.getBytes().length);
-        out = new PrintWriter(conn.getOutputStream());
-        out.print(s);
-        out.close();
+		post("difficulty", "normal");
         
         Thread.sleep(5000);
 
@@ -121,6 +98,97 @@ public class MyDBTests {
         user = getUser(TEST_USERNAME);
         assertNotNull("User wasn't retrieved properly", user);
 		assertTrue("Game wasn't set up properly", (Boolean) user.get("isGameInProgress"));
+		
+		// Solve the game
+		post("guess", "n");
+        Thread.sleep(5000);
+		post("guess", "o");
+        Thread.sleep(5000);
+		post("guess", "r");
+        Thread.sleep(5000);
+		post("guess", "m");
+        Thread.sleep(5000);
+		post("guess", "a");
+		
+		Thread.sleep(5000);
+
+        user = getUser(TEST_USERNAME);
+		DBObject currentGame = (DBObject) user.get("currentGame");
+        assertNotNull("Game wasn't retrieved", currentGame);
+		assertEquals("Guesses aren't being recorded properly", "norma", currentGame.get("guesses"));
+		assertEquals("Wrong guess counter", 0, currentGame.get("wrong"));
+
+		Thread.sleep(5000);
+
+		post("guess", "t");
+        Thread.sleep(5000);
+		post("guess", "s");		
+        Thread.sleep(5000);
+        user = getUser(TEST_USERNAME);
+		currentGame = (DBObject) user.get("currentGame");
+		assertEquals("Guesses aren't being recorded properly", "normats", currentGame.get("guesses"));
+		assertEquals("Wrong guess counter", 2, currentGame.get("wrong"));
+		
+		post("guess", "l");
+		
+		Thread.sleep(5000);
+		
+		// User creates new game
+		post("difficulty", "easy");
+        
+        Thread.sleep(5000);
+
+        // Ensure game is created correctly
+        user = getUser(TEST_USERNAME);
+        assertNotNull("User wasn't retrieved properly", user);
+		assertTrue("Game wasn't set up properly", (Boolean) user.get("isGameInProgress"));
+		
+		post("guess", "a");
+        Thread.sleep(5000);
+		post("guess", "b");
+        Thread.sleep(5000);
+		post("guess", "c");
+        Thread.sleep(5000);
+		post("guess", "d");
+        Thread.sleep(5000);
+		post("guess", "f");
+        Thread.sleep(5000);
+		post("guess", "g");
+		
+		Thread.sleep(15000);
+
+        user = getUser(TEST_USERNAME);
+		DBObject winloss = (DBObject) user.get("winloss");
+		currentGame = (DBObject) user.get("currentGame");
+        assertNotNull("Win/loss data wasn't retrieved", currentGame);
+		BasicBSONObject diffwl = ((BasicBSONObject) winloss.get("normal"));
+        assertNotNull("Normal data wasn't retrieved", currentGame);
+
+        assertEquals("Normal total incorrectly calculated", 1, diffwl.get("total"));
+        assertEquals("Normal wins incorrectly calculated", 1, diffwl.get("total"));
+		diffwl = ((BasicBSONObject) winloss.get("easy"));
+        assertNotNull("Easy data wasn't retrieved", currentGame);
+
+        assertEquals("Easy total incorrectly calculated", 1, diffwl.get("total"));
+        assertEquals("Easy wins incorrectly calculated", 1, diffwl.get("total"));
+	}
+	
+	private void post(String key, String value) throws IOException {
+		URL url = new URL(PREFIX);
+        String charset = "UTF-8";
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestProperty("Cookie", "MongoUsername=" + TEST_USERNAME);
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+        String s = key + "=" + URLEncoder.encode(value, charset);
+
+        conn.setFixedLengthStreamingMode(s.getBytes().length);
+        PrintWriter out = new PrintWriter(conn.getOutputStream());
+        out.print(s);
+        out.close();
+        
 	}
 	
 	

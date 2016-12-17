@@ -30,6 +30,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/final/src/main/resources/gson-2.3.1.jar"/>
+	<classpathentry kind="lib" path="src/main/resources/com.google.gson_2.2.4.v201311231704.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

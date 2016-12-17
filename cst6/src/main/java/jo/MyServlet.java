@@ -60,6 +60,15 @@ public class MyServlet extends HttpServlet  {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {	
 		HttpSession session = request.getSession();
+		String username = null;
+		String rawCookie = request.getHeader("Cookie");
+		String[] rawCookieParams = rawCookie.split(";");
+		for(String rawCookieNameAndValue :rawCookieParams) {
+			String[] rawCookieNameAndValuePair = rawCookieNameAndValue.split("=");
+			if (rawCookieNameAndValuePair[0].equals("MongoUsername")) {
+				username = rawCookieNameAndValuePair[1];
+			}
+		}
 		
 		if (request.getParameter("js") != null) {
 			response.setContentType("text/javascript");
@@ -94,7 +103,6 @@ public class MyServlet extends HttpServlet  {
 			      // close the streams
 			  }
 		} else if (request.getParameter("stats") != null) {
-			String username = (String) session.getAttribute("username");
 			DBObject user = getUser(username);
 			DBObject currentGame = (DBObject) user.get("currentGame");
 			request.setAttribute("username", username);
@@ -116,13 +124,10 @@ public class MyServlet extends HttpServlet  {
 			request.setAttribute("hardWin", hardwl.get("wins"));
 			
 			request.getRequestDispatcher("stats.jsp").forward(request, response);
-		} else if (session.getAttribute("username") == null) {
+		} else if (username == null) {
 			request.getRequestDispatcher("login.jsp").forward(request, response);
-		} else if (session.getAttribute("username") != null) {
-			String username = (String) session.getAttribute("username");
+		} else if (username != null) {
 			DBObject user = getUser(username);
-			System.out.println("Username:  " + username);
-			System.out.println(user);
 			if (user != null && (Boolean)user.get("isGameInProgress") == true) {
 				DBObject currentGame = (DBObject) user.get("currentGame");
 				String imagePath = Integer.toString((Integer) currentGame.get("wrong") + 1);
@@ -163,18 +168,20 @@ public class MyServlet extends HttpServlet  {
 		String[] rawCookieParams = rawCookie.split(";");
 		for(String rawCookieNameAndValue :rawCookieParams) {
 			String[] rawCookieNameAndValuePair = rawCookieNameAndValue.split("=");
-			System.out.println("IMPORTNAT: " + rawCookieNameAndValuePair[0]);
 			if (rawCookieNameAndValuePair[0].equals("MongoUsername")) {
 				username = rawCookieNameAndValuePair[1];
 			}
 		}
-		System.out.println("username is now: " + username);
-		System.out.println("username is now: " + request.getParameter("difficulty"));
-		HttpSession session = request.getSession();
-		// TODO Auto-generated method stub
-		Hangman hangmanGame = (Hangman)request.getSession().getAttribute("game");
 		if (request.getParameter("difficulty") != null) {
 			startNewGame(username, request.getParameter("difficulty"));
+		} else if (request.getParameter("guess") != null) {
+			if (request.getParameter("guess").length() >= 1) {
+				String guess = request.getParameter("guess").toLowerCase().substring(0, 1);
+				addGuess(username, guess);
+			}
+			if (request.getParameter("time") != null) {
+				updateTime(username, Integer.parseInt(request.getParameter("time")));
+			}
 		} else if (username != null) {
 			if (getUser(username) == null) {
 				createNewUser(username);
@@ -182,12 +189,6 @@ public class MyServlet extends HttpServlet  {
 			response.addCookie(new Cookie("MongoUsername", request.getParameter("username")));
 		} else if (request.getParameter("logout") != null) {
 			response.addCookie(new Cookie("MongoUsername", null));
-		} else {
-			if (request.getParameter("guess").length() >= 1) {
-				String guess = request.getParameter("guess").toLowerCase().substring(0, 1);
-				addGuess(username, guess);
-			}
-			updateTime(username, Integer.parseInt(request.getParameter("time")));
 		}
 		doGet(request, response);
 	}
@@ -202,6 +203,12 @@ public class MyServlet extends HttpServlet  {
 		stats.insert(dbObject);
 	}
 	
+	/**
+	 * Establish a connection to the MongoLab database we have set up
+	 * username: testtest
+	 * password; testtest
+	 * @return Returns DBCollection containing our hangman stats collection
+	 */
 	private DBCollection getStatsCollection() {
 		MongoClientURI uri  = new MongoClientURI("mongodb://testtest:testtest@ds133428.mlab.com:33428/hangman438"); 
 	    MongoClient client = new MongoClient(uri);
@@ -209,6 +216,12 @@ public class MyServlet extends HttpServlet  {
 		return db.getCollection("hangmanstats");
 	}
 	
+	/**
+	 * Get our user item from our database.
+	 * Checks for items matching the provided username.
+	 * @param username String of our username
+	 * @return DBObject of our item. Returns null if no match.
+	 */
 	private DBObject getUser(String username) {
 		DBCollection stats = getStatsCollection();
 		BasicDBObject fields = new BasicDBObject();
@@ -221,35 +234,45 @@ public class MyServlet extends HttpServlet  {
 		return user;
 	}	
 	
+	/**
+	 * Starts a new game for our user at the specified difficulty
+	 * @param username String of the username
+	 * @param difficulty String of difficulty. Must be 'easy', 'normal', or 'hard'
+	 * @return true if works
+	 */
 	private boolean startNewGame(String username, String difficulty) {
-		System.out.println("Starting new game");
-		System.out.println("Username: " + username);
-		String newGameJSON = generateGameJSONString(Hangman.randomWord(difficulty), "", 0, false, 0, difficulty);
-		BasicDBObject dbObject = (BasicDBObject)JSON.parse(newGameJSON);
-		updateAttribute(username, "currentGame", dbObject);
-		updateAttribute(username, "isGameInProgress", true);
-		
-		System.out.println("Username: " + username);
-		DBObject user = getUser(username);
-		System.out.println(user);
-		System.out.println(user.get("currentGame"));
-		
-		return true;
+		if (difficulty.equals("easy") || difficulty.equals("normal") || difficulty.equals("hard")) {
+			String newGameJSON = generateGameJSONString(Hangman.randomWord(difficulty), "", 0, false, 0, difficulty);
+			BasicDBObject dbObject = (BasicDBObject)JSON.parse(newGameJSON);
+			updateAttribute(username, "currentGame", dbObject);
+			updateAttribute(username, "isGameInProgress", true);
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
-	private boolean updateAttribute(String username, String attribute, boolean value) {
+	/**
+	 * Updates an attribute in the database with a new boolean value
+	 * @param username
+	 * @param attribute
+	 * @param value
+	 */
+	private void updateAttribute(String username, String attribute, boolean value) {
 		DBCollection stats = getStatsCollection();
-		
 		BasicDBObject newDocument = new BasicDBObject();
+		
+		// Set the appropriate attribute, value pair. 
 		newDocument.append("$set", new BasicDBObject().append(attribute, value));
-
+		
+		// Get the correct search to match our username
 		BasicDBObject searchQuery = new BasicDBObject().append("username", username);
 
+		// Update the corresponding username item with the new attribute value combination
 		stats.update(searchQuery, newDocument);
-		return true;
 	}
 	
-	private boolean updateAttribute(String username, String attribute, BasicDBObject bdbo) {
+	private void updateAttribute(String username, String attribute, BasicDBObject bdbo) {
 		DBCollection stats = getStatsCollection();
 		
 		BasicDBObject updatedDocument = new BasicDBObject();
@@ -257,16 +280,24 @@ public class MyServlet extends HttpServlet  {
 
 		BasicDBObject searchQuery = new BasicDBObject().append("username", username);
 
-		stats.update(searchQuery, updatedDocument);
-		return true;
-	}
+		stats.update(searchQuery, updatedDocument);	}
 	
-	private boolean updateWinLoss(String username, String difficulty, boolean win) {
+	
+	/**
+	 * Update our win loss data structure
+	 * @param username
+	 * @param difficulty
+	 * @param win true if win, false if loss
+	 */
+	private void updateWinLoss(String username, String difficulty, boolean win) {
 		DBCollection stats = getStatsCollection();
 		DBObject user = getUser(username);
+		
+		// Get the appropriate win loss data structure for the difficulty
 		BasicDBObject updatedDocument = new BasicDBObject();
 		BasicBSONObject wl = ((BasicBSONObject) user.get("winloss"));
 		BasicBSONObject diffwl = ((BasicBSONObject) wl.get(difficulty));
+		
 		diffwl.put("total", (Integer) diffwl.get("total") + 1);
 		if (win) {
 			diffwl.put("wins", (Integer) diffwl.get("wins") + 1);
@@ -276,15 +307,12 @@ public class MyServlet extends HttpServlet  {
 		
 		BasicDBObject searchQuery = new BasicDBObject().append("username", username);
 		stats.update(searchQuery, updatedDocument);
-		return true;
 	}
 	
-	private boolean addGuess(String username, String guess) {
+	private void addGuess(String username, String guess) {
 		DBCollection stats = getStatsCollection();
 		DBObject user = getUser(username);
-		System.out.println("THis: " + user);
 		BasicDBObject updatedDocument = new BasicDBObject();
-		System.out.println("THias: " + user.get("currentGame"));
 		BasicBSONObject currentGame = ((BasicBSONObject) user.get("currentGame"));
 		
 		String currentGuesses = (String) currentGame.get("guesses");
@@ -301,11 +329,9 @@ public class MyServlet extends HttpServlet  {
 		
 		BasicDBObject searchQuery = new BasicDBObject().append("username", username);
 		stats.update(searchQuery, updatedDocument);
-		
-		return true;
 	}
 	
-	private boolean updateTime(String username, int time) {
+	private void updateTime(String username, int time) {
 		DBCollection stats = getStatsCollection();
 		DBObject user = getUser(username);
 		BasicDBObject updatedDocument = new BasicDBObject();
@@ -316,7 +342,6 @@ public class MyServlet extends HttpServlet  {
 		
 		BasicDBObject searchQuery = new BasicDBObject().append("username", username);
 		stats.update(searchQuery, updatedDocument);
-		return true;
 	}
 	
 	private String generateGameJSONString(String word, String guesses, int wrong, boolean newGuess, int time, String difficulty) {	
